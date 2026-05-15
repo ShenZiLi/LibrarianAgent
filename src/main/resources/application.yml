@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: librarian-agent
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/librarian_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 5000ms
+
+  ai:
+    zhipuai:
+      api-key: ${ZHIPUAI_API_KEY:your-api-key-here}
+      chat:
+        options:
+          model: glm-4.6v
+          temperature: 0.1
+          max-tokens: 2048
+
+milvus:
+  host: localhost
+  port: 19530
+  collection-name: rag_knowledge_base
+  embedding-dimension: 1024
+  hnsw:
+    m: 16
+    ef-construction: 200
+  search:
+    ef: 50
+    top-k: 5
+
+rag:
+  chunk:
+    target-size: 512
+    overlap: 128
+    min-size: 256
+    max-size: 768
+  reranker:
+    enabled: true
+    top-n: 5
+    url: http://localhost:8001/rerank
+  similarity-threshold: 0.3
+  max-context-tokens: 4096
+  conversation:
+    max-turns: 10
+    compression-turns: 3
+    redis-ttl: 3600
+
+security:
+  prompt-injection:
+    enabled: true
+  pii-masking:
+    enabled: true
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    com.librarian: DEBUG
+    org.springframework.ai: INFO
