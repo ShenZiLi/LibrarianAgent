@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="LibrarianAgent Architecture">
+    <mxGraphModel>
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <!-- Client Tier -->
+        <mxCell id="2" value="Client" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Microsoft YaHei;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="350" y="40" width="300" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="3" value="Web UI / CLI / API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Microsoft YaHei;fontSize=12;" vertex="1" parent="2">
+          <mxGeometry x="60" y="40" width="180" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- API Gateway Tier -->
+        <mxCell id="4" value="API Gateway" style="swimlane;startSize=30;fillColor=#e1d5e7;strokeColor=#9673a6;fontFamily=Microsoft YaHei;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="300" y="180" width="400" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="5" value="Auth Middleware" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontFamily=Microsoft YaHei;fontSize=11;" vertex="1" parent="4">
+          <mxGeometry x="20" y="40" width="110" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="Rate Limiter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontFamily=Microsoft YaHei;fontSize=11;" vertex="1" parent="4">
+          <mxGeometry x="145" y="40" width="110" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="7" value="Request Logger" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontFamily=Microsoft YaHei;fontSize=11;" vertex="1" parent="4">
+          <mxGeometry x="270" y="40" width="110" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Service Tier -->
+        <mxCell id="8" value="Service Layer" style="swimlane;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Microsoft YaHei;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="50" y="340" width="400" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="9" value="Chat Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Microsoft YaHei;fontSize=12;fontStyle=1" vertex="1" parent="8">
+          <mxGeometry x="30" y="45" width="150" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="10" value="Ingestion Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Microsoft YaHei;fontSize=12;fontStyle=1" vertex="1" parent="8">
+          <mxGeometry x="220" y="45" width="150" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- RAG Pipeline Tier -->
+        <mxCell id="11" value="RAG Pipeline" style="swimlane;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontFamily=Microsoft YaHei;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="50" y="520" width="400" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="12" value="Query Rewriter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Microsoft YaHei;fontSize=11;" vertex="1" parent="11">
+          <mxGeometry x="120" y="45" width="160" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="13" value="Dense Retriever" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Microsoft YaHei;fontSize=11;" vertex="1" parent="11">
+          <mxGeometry x="120" y="95" width="160" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="14" value="Cross-Encoder Re-Ranker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Microsoft YaHei;fontSize=11;" vertex="1" parent="11">
+          <mxGeometry x="120" y="145" width="160" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="15" value="Prompt Builder" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Microsoft YaHei;fontSize=11;" vertex="1" parent="11">
+          <mxGeometry x="120" y="195" width="160" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="16" value="LLM Generator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Microsoft YaHei;fontSize=11;" vertex="1" parent="11">
+          <mxGeometry x="120" y="245" width="160" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="17" value="Citation Extractor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Microsoft YaHei;fontSize=11;" vertex="1" parent="11">
+          <mxGeometry x="120" y="295" width="160" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Document Store Tier -->
+        <mxCell id="18" value="Document Store" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Microsoft YaHei;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="500" y="520" width="400" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="19" value="Raw Documents" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Microsoft YaHei;fontSize=12;" vertex="1" parent="18">
+          <mxGeometry x="60" y="50" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="20" value="Chunk + Vector Store" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Microsoft YaHei;fontSize=12;" vertex="1" parent="18">
+          <mxGeometry x="220" y="50" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Observability Tier -->
+        <mxCell id="21" value="Observability Layer" style="swimlane;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;fontFamily=Microsoft YaHei;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="500" y="340" width="400" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="22" value="Structured Logs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontFamily=Microsoft YaHei;fontSize=11;" vertex="1" parent="21">
+          <mxGeometry x="20" y="40" width="110" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="23" value="Trace / Span" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontFamily=Microsoft YaHei;fontSize=11;" vertex="1" parent="21">
+          <mxGeometry x="145" y="40" width="110" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="24" value="Metrics Dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontFamily=Microsoft YaHei;fontSize=11;" vertex="1" parent="21">
+          <mxGeometry x="270" y="40" width="110" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Edges: Client to Gateway -->
+        <mxCell id="50" value="HTTP / WebSocket" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Microsoft YaHei;fontSize=10;" edge="1" parent="1" source="3" target="4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Edges: Gateway to Services -->
+        <mxCell id="51" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="4" target="8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="52" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="4" target="8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Edges: Chat Service to RAG Pipeline -->
+        <mxCell id="53" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="9" target="11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Edges: RAG Pipeline internal flow -->
+        <mxCell id="54" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="12" target="13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="55" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="13" target="14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="56" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="14" target="15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="57" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="15" target="16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="58" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="16" target="17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Edges: RAG Retriever to Document Store -->
+        <mxCell id="59" value="vector query" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontFamily=Microsoft YaHei;fontSize=10;" edge="1" parent="1" source="13" target="20">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="500" y="640" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Edges: Ingestion to Document Store -->
+        <mxCell id="60" value="ingest" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;fontFamily=Microsoft YaHei;fontSize=10;" edge="1" parent="1" source="10" target="18">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="500" y="420" />
+              <mxPoint x="500" y="680" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Edges: Services to Observability -->
+        <mxCell id="61" value="log events" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontFamily=Microsoft YaHei;fontSize=10;" edge="1" parent="1" source="9" target="21">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="480" y="420" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="62" value="log events" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontFamily=Microsoft YaHei;fontSize=10;" edge="1" parent="1" source="20" target="21">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="760" y="600" />
+              <mxPoint x="760" y="490" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Edges: RAG Pipeline to Observability -->
+        <mxCell id="63" value="log events" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;fontFamily=Microsoft YaHei;fontSize=10;" edge="1" parent="1" source="11" target="21">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="480" y="680" />
+              <mxPoint x="480" y="490" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
