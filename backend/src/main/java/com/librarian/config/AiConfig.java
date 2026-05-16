@@ -17,6 +17,12 @@ public class AiConfig {
     @Value("${rag.max-history-rounds}")
     private int maxHistoryRounds;
 
+    @Value("${rag.chunk-size}")
+    private int chunkSize;
+
+    @Value("${rag.chunk-overlap}")
+    private int chunkOverlap;
+
     @Bean
     public ChatClient chatClient(ChatClient.Builder builder) {
         return builder.build();
@@ -32,5 +38,13 @@ public class AiConfig {
 
     public int getMaxHistoryRounds() {
         return maxHistoryRounds;
+    }
+
+    public int getChunkSize() {
+        return chunkSize;
+    }
+
+    public int getChunkOverlap() {
+        return chunkOverlap;
     }
 }

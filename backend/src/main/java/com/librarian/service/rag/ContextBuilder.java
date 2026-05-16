@@ -1,27 +1,43 @@
 package com.librarian.service.rag;
 
 import com.librarian.model.entity.DocumentChunk;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
+@Slf4j
 @Component
 public class ContextBuilder {
 
-    private static final Logger log = LoggerFactory.getLogger(ContextBuilder.class);
-
     public String build(List<DocumentChunk> chunks) {
         log.info("Building context from {} chunks", chunks.size());
-        StringBuilder context = new StringBuilder();
-        for (int i = 0; i < chunks.size(); i++) {
-            DocumentChunk chunk = chunks.get(i);
-            context.append("[来源: ").append(chunk.getMetadataAsString("fileName"))
-                   .append("]\n")
-                   .append(chunk.getContent())
-                   .append("\n\n");
+
+        if (chunks.isEmpty()) {
+            return "";
         }
+
+        StringBuilder context = new StringBuilder();
+        IntStream.range(0, chunks.size()).forEach(i -> {
+            DocumentChunk chunk = chunks.get(i);
+            int index = i + 1;
+            String fileName = chunk.getMetadataAsString("fileName");
+            String sourceLabel = fileName != null ? fileName : "Unknown";
+
+            context.append("[来源").append(index).append(": ").append(sourceLabel).append("]\n");
+            context.append(chunk.getContent()).append("\n\n");
+        });
+
         return context.toString();
+    }
+
+    public List<String> buildCitations(List<DocumentChunk> chunks) {
+        return chunks.stream()
+                .map(chunk -> {
+                    String fileName = chunk.getMetadataAsString("fileName");
+                    return fileName != null ? fileName : "Unknown";
+                })
+                .toList();
     }
 }
