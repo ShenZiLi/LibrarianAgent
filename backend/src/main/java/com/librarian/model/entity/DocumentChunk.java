@@ -58,4 +58,12 @@ public class DocumentChunk {
         Object value = metadata.get(key);
         return value != null ? value.toString() : null;
     }
+
+    public double getMetadataAsDouble(String key, double defaultValue) {
+        Object value = metadata.get(key);
+        if (value instanceof Number num) {
+            return num.doubleValue();
+        }
+        return defaultValue;
+    }
 }

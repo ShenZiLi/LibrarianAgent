@@ -1,8 +1,8 @@
 package com.librarian.service.rag;
 
-import com.librarian.model.entity.DocumentChunk;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -13,13 +13,13 @@ public class QueryRewriter {
 
     private final ChatClient chatClient;
 
-    public QueryRewriter(ChatClient chatClient) {
+    public QueryRewriter(@Qualifier("queryRewriteChatClient") ChatClient chatClient) {
         this.chatClient = chatClient;
     }
 
     public String rewrite(String query, List<com.librarian.model.entity.Message> history) {
         if (history == null || history.isEmpty()) {
-            log.info("No history, returning original query");
+            log.debug("No history, returning original query");
             return query;
         }
 
@@ -32,11 +32,6 @@ public class QueryRewriter {
         }
 
         String rewrittenQuery = chatClient.prompt()
-                .system("""
-                        You are a query rewriter for a RAG system. Given a conversation history and a follow-up question,
-                        rewrite the follow-up question as a standalone, self-contained query that can be used for document retrieval.
-                        Only output the rewritten query, nothing else.
-                        """)
                 .user(u -> u.text("""
                         Conversation History:
                         {history}

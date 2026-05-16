@@ -2,8 +2,8 @@ spring:
   application:
     name: librarian-agent
   ai:
-    openai:
-      base-url: ${LLM_BASE_URL:https://open.bigmodel.cn/api/paas/v4/}
+    zhipuai:
+      base-url: ${LLM_BASE_URL:https://open.bigmodel.cn}
       api-key: ${LLM_API_KEY:your-api-key-here}
       chat:
         options:
