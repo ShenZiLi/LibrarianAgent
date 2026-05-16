@@ -37,7 +37,7 @@
 }
 
 .ai-avatar {
-  background: rgba(106, 171, 124, 0.12);
+  background: rgba(52, 168, 83, 0.1);
   color: var(--success);
   stroke: var(--success);
 }
@@ -67,6 +67,7 @@
   border-radius: 4px;
   font-size: 13px;
   font-family: 'SF Mono', 'Fira Code', monospace;
+  border: 1px solid var(--border);
 }
 
 .message-content :deep(pre) {
@@ -125,7 +126,7 @@
   background: var(--accent-dim);
   color: var(--accent);
   border-radius: 20px;
-  border: 1px solid rgba(196, 168, 130, 0.15);
+  border: 1px solid var(--accent-border);
 }
 
 .message-time {

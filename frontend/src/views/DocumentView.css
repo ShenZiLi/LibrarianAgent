@@ -23,7 +23,7 @@
 .upload-trigger {
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--bg-primary);
+  color: #ffffff;
   font-weight: 500;
 }
 
@@ -125,17 +125,17 @@
 }
 
 .doc-status.processing {
-  background: rgba(212, 167, 106, 0.15);
+  background: rgba(230, 167, 0, 0.1);
   color: var(--warning);
 }
 
 .doc-status.completed {
-  background: rgba(106, 171, 124, 0.15);
+  background: rgba(52, 168, 83, 0.1);
   color: var(--success);
 }
 
 .doc-status.failed {
-  background: rgba(212, 122, 106, 0.15);
+  background: rgba(229, 83, 75, 0.1);
   color: var(--error);
 }
 

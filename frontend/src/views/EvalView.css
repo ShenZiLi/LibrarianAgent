@@ -28,6 +28,7 @@
 
 .metric-card:hover {
   border-color: var(--border-hover);
+  box-shadow: var(--shadow-sm);
 }
 
 .metric-label {
@@ -179,22 +180,22 @@
 }
 
 .log-level.info {
-  background: rgba(106, 171, 124, 0.15);
+  background: rgba(52, 168, 83, 0.1);
   color: var(--success);
 }
 
 .log-level.warn {
-  background: rgba(212, 167, 106, 0.15);
+  background: rgba(230, 167, 0, 0.1);
   color: var(--warning);
 }
 
 .log-level.debug {
-  background: rgba(106, 130, 171, 0.15);
-  color: #6a82ab;
+  background: rgba(106, 130, 171, 0.1);
+  color: #5a72a0;
 }
 
 .log-level.error {
-  background: rgba(212, 122, 106, 0.15);
+  background: rgba(229, 83, 75, 0.1);
   color: var(--error);
 }
 
