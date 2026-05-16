@@ -3,15 +3,13 @@ package com.librarian.controller;
 import com.librarian.model.dto.EvalDto.*;
 import com.librarian.service.EvalService;
 import com.librarian.util.LoggerUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/eval")
 public class EvalController {
-
-    private static final Logger log = LoggerFactory.getLogger(EvalController.class);
 
     private final EvalService evalService;
 

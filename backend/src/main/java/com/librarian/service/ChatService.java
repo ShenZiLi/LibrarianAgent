@@ -4,8 +4,7 @@ import com.librarian.config.AiConfig;
 import com.librarian.model.dto.ChatDto.*;
 import com.librarian.model.entity.ConversationSession;
 import com.librarian.model.entity.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -16,10 +15,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ChatService {
-
-    private static final Logger log = LoggerFactory.getLogger(ChatService.class);
 
     private final Map<String, ConversationSession> sessions = new ConcurrentHashMap<>();
     private final AiConfig aiConfig;

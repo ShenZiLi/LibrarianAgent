@@ -3,19 +3,17 @@ package com.librarian.controller;
 import com.librarian.model.dto.ChatDto.*;
 import com.librarian.service.ChatService;
 import com.librarian.util.LoggerUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/chat/sessions")
 public class ChatController {
-
-    private static final Logger log = LoggerFactory.getLogger(ChatController.class);
 
     private final ChatService chatService;
 

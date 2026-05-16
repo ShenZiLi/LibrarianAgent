@@ -1,8 +1,7 @@
 package com.librarian.service.rag;
 
 import com.librarian.model.entity.DocumentChunk;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -10,10 +9,9 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Component
 public class VectorSearch {
-
-    private static final Logger log = LoggerFactory.getLogger(VectorSearch.class);
 
     private final EmbeddingModel embeddingModel;
 
