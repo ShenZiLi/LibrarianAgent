@@ -11,14 +11,16 @@ spring:
           temperature: ${LLM_TEMPERATURE:0.7}
       embedding:
         options:
-          model: ${EMBEDDING_MODEL:text-embedding-3-small}
+          model: ${EMBEDDING_MODEL:embedding-3}
+          dimensions: 1536
     vectorstore:
-      type: chroma
       chroma:
         collection-name: ${CHROMA_COLLECTION:librarian-docs}
         initialize-schema: true
+        tenant-name: ${CHROMA_TENANT:SpringAiTenant}
+        database-name: ${CHROMA_DATABASE:SpringAiDatabase}
         client:
-          host: ${CHROMA_HOST:localhost}
+          host: ${CHROMA_HOST:http://localhost}
           port: ${CHROMA_PORT:8000}
 
 rag:
