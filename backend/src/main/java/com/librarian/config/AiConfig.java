@@ -1,13 +1,19 @@
 package com.librarian.config;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.zhipuai.ZhiPuAiChatModel;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 public class AiConfig {
+
+    public enum ModelProvider {
+        ZHIPUAI,
+        QWEN
+    }
 
     @Value("${rag.top-k:5}")
     private int topK;
@@ -24,14 +30,42 @@ public class AiConfig {
     @Value("${rag.chunk-overlap:128}")
     private int chunkOverlap;
 
+    @Value("${ai.model.provider:ZHIPUAI}")
+    private ModelProvider modelProvider;
+
     @Bean
-    public ChatClient chatClient(ZhiPuAiChatModel chatModel) {
-        return ChatClient.builder(chatModel).build();
+    public OpenAiApi openAiApi(
+            @Value("${spring.ai.openai.base-url}") String baseUrl,
+            @Value("${spring.ai.openai.api-key}") String apiKey) {
+        return OpenAiApi.builder()
+                .baseUrl(baseUrl)
+                .apiKey(apiKey)
+                .build();
+    }
+
+    @Bean
+    public OpenAiChatModel openAiChatModel(OpenAiApi openAiApi,
+                                           @Value("${spring.ai.openai.chat.options.model:glm-4}") String model,
+                                           @Value("${spring.ai.openai.chat.options.temperature:0.7}") Double temperature) {
+        return OpenAiChatModel.builder()
+                .openAiApi(openAiApi)
+                .defaultOptions(
+                        org.springframework.ai.openai.OpenAiChatOptions.builder()
+                                .model(model)
+                                .temperature(temperature)
+                                .build()
+                )
+                .build();
+    }
+
+    @Bean
+    public ChatClient chatClient(OpenAiChatModel openAiChatModel) {
+        return ChatClient.builder(openAiChatModel).build();
     }
 
     @Bean("queryRewriteChatClient")
-    public ChatClient queryRewriteChatClient(ZhiPuAiChatModel chatModel) {
-        return ChatClient.builder(chatModel)
+    public ChatClient queryRewriteChatClient(OpenAiChatModel openAiChatModel) {
+        return ChatClient.builder(openAiChatModel)
                 .defaultSystem("You are a query rewriter for a RAG system. " +
                         "Given a conversation history and a follow-up question, " +
                         "rewrite the follow-up question as a standalone, self-contained query " +
@@ -41,8 +75,8 @@ public class AiConfig {
     }
 
     @Bean("ragChatClient")
-    public ChatClient ragChatClient(ZhiPuAiChatModel chatModel) {
-        return ChatClient.builder(chatModel)
+    public ChatClient ragChatClient(OpenAiChatModel openAiChatModel) {
+        return ChatClient.builder(openAiChatModel)
                 .defaultSystem("你是一个企业知识库助手。请基于提供的上下文回答问题。")
                 .build();
     }
@@ -65,5 +99,9 @@ public class AiConfig {
 
     public int getChunkOverlap() {
         return chunkOverlap;
+    }
+
+    public ModelProvider getModelProvider() {
+        return modelProvider;
     }
 }
