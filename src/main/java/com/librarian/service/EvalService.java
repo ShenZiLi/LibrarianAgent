@@ -50,7 +50,7 @@ public class EvalService {
         for (EvalQuestion question : sampled) {
             try {
                 QueryRequest request = QueryRequest.builder()
-                        .query(question.getQuestion())
+                        .query(question.question())
                         .topK(5)
                         .temperature(0.1)
                         .enableReranker(true)
@@ -58,12 +58,12 @@ public class EvalService {
 
                 AnswerResponse response = orchestrationService.processQuery(request);
 
-                double faithfulness = estimateFaithfulness(question.getExpectedAnswer(), response.getAnswer());
-                boolean isCorrect = estimateCorrectness(question.getExpectedAnswer(), response.getAnswer());
+                double faithfulness = estimateFaithfulness(question.expectedAnswer(), response.getAnswer());
+                boolean isCorrect = estimateCorrectness(question.expectedAnswer(), response.getAnswer());
 
                 details.add(EvalResponse.EvalDetail.builder()
-                        .question(question.getQuestion())
-                        .expectedAnswer(question.getExpectedAnswer())
+                        .question(question.question())
+                        .expectedAnswer(question.expectedAnswer())
                         .actualAnswer(response.getAnswer())
                         .faithfulnessScore(faithfulness)
                         .isCorrect(isCorrect)
@@ -77,7 +77,7 @@ public class EvalService {
                 latencies.add(response.getLatencyMs());
 
             } catch (Exception e) {
-                log.error("Failed to evaluate question: {}", question.getQuestion(), e);
+                log.error("Failed to evaluate question: {}", question.question(), e);
             }
         }
 

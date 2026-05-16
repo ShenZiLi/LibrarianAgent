@@ -66,7 +66,7 @@ public class RagGenerationService {
 
         Prompt prompt = new Prompt(messages, options);
         ChatResponse chatResponse = chatModel.call(prompt);
-        String answer = chatResponse.getResult().getOutput().getContent();
+        String answer = chatResponse.getResult().getOutput().getText();
 
         long elapsed = System.currentTimeMillis() - startTime;
         log.info("LLM generation completed in {}ms, model={}", elapsed, "glm-4.6v");

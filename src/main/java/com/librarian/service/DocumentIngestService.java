@@ -70,10 +70,10 @@ public class DocumentIngestService {
             List<Map<String, Object>> chunkMaps = new ArrayList<>();
             for (int i = 0; i < chunks.size(); i++) {
                 String chunkText = chunks.get(i);
-                List<Double> embedding = embeddingModel.embed(chunkText);
-                List<Float> embeddingList = new ArrayList<>(embedding.size());
-                for (Double v : embedding) {
-                    embeddingList.add(v.floatValue());
+                float[] embedding = embeddingModel.embed(chunkText);
+                List<Float> embeddingList = new ArrayList<>(embedding.length);
+                for (float v : embedding) {
+                    embeddingList.add(v);
                 }
 
                 Map<String, Object> chunkMap = new HashMap<>();
@@ -114,7 +114,7 @@ public class DocumentIngestService {
         }
     }
 
-    private String extractText(MultipartFile file) throws IOException {
+    private String extractText(MultipartFile file) throws IOException, TikaException {
         String fileType = tika.detect(file.getInputStream());
 
         if (fileType != null && (fileType.contains("pdf"))) {

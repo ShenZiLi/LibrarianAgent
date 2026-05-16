@@ -1,9 +1,7 @@
 package com.librarian.config;
 
-import io.milvus.client.MilvusClient;
-import io.milvus.client.MilvusClientV2;
-import io.milvus.client.MilvusServiceClient;
-import io.milvus.param.ConnectParam;
+import io.milvus.v2.client.ConnectConfig;
+import io.milvus.v2.client.MilvusClientV2;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -18,9 +16,8 @@ public class MilvusConfig {
 
     @Bean
     public MilvusClientV2 milvusClient() {
-        MilvusClientV2 client = new MilvusClientV2(ConnectParam.newBuilder()
-                .withHost(milvusProperties.getHost())
-                .withPort(milvusProperties.getPort())
+        MilvusClientV2 client = new MilvusClientV2(ConnectConfig.builder()
+                .uri(milvusProperties.getHost() + ":" + milvusProperties.getPort())
                 .build());
         log.info("Connected to Milvus at {}:{}", milvusProperties.getHost(), milvusProperties.getPort());
         return client;

@@ -9,11 +9,20 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "rag")
 public class RagProperties {
 
+    private String collectionName = "librarian_knowledge";
+    private int embeddingDimension = 1024;
+    private Hnsw hnsw = new Hnsw();
     private Chunk chunk = new Chunk();
     private Reranker reranker = new Reranker();
     private double similarityThreshold = 0.3;
     private int maxContextTokens = 4096;
     private Conversation conversation = new Conversation();
+
+    @Data
+    public static class Hnsw {
+        private int m = 16;
+        private int efConstruction = 256;
+    }
 
     @Data
     public static class Chunk {

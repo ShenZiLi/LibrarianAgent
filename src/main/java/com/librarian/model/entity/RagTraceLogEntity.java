@@ -44,6 +44,9 @@ public class RagTraceLogEntity {
     @Column(name = "faithfulness_score")
     private Double faithfulnessScore;
 
+    @Column(name = "confidence")
+    private Double confidence;
+
     @Column(name = "total_latency_ms")
     private Long totalLatencyMs;
 

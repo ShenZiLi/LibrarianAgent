@@ -2,7 +2,7 @@ package com.librarian.service;
 
 import com.librarian.config.RagProperties;
 import com.librarian.model.dto.RetrievedContext;
-import io.milvus.client.MilvusClientV2;
+import io.milvus.v2.client.MilvusClientV2;
 import io.milvus.v2.common.ConsistencyLevel;
 import io.milvus.v2.common.DataType;
 import io.milvus.v2.common.IndexParam;
@@ -10,6 +10,7 @@ import io.milvus.v2.service.collection.request.CreateCollectionReq;
 import io.milvus.v2.service.collection.request.HasCollectionReq;
 import io.milvus.v2.service.vector.request.InsertReq;
 import io.milvus.v2.service.vector.request.SearchReq;
+import io.milvus.v2.service.vector.request.data.FloatVec;
 import io.milvus.v2.service.vector.response.InsertResp;
 import io.milvus.v2.service.vector.response.SearchResp;
 import lombok.RequiredArgsConstructor;
@@ -48,67 +49,57 @@ public class VectorStoreService {
     }
 
     private void createCollection(String collectionName) {
-        List<CreateCollectionReq.FieldSchema> fields = new ArrayList<>();
-
-        fields.add(CreateCollectionReq.FieldSchema.builder()
-                .name("id")
+        CreateCollectionReq.CollectionSchema schema = milvusClient.createSchema();
+        
+        schema.addField(io.milvus.v2.service.collection.request.AddFieldReq.builder()
+                .fieldName("id")
                 .dataType(DataType.VarChar)
                 .maxLength(64)
                 .isPrimaryKey(true)
-                .autoGenerate(false)
+                .autoID(false)
                 .build());
 
-        fields.add(CreateCollectionReq.FieldSchema.builder()
-                .name("content")
+        schema.addField(io.milvus.v2.service.collection.request.AddFieldReq.builder()
+                .fieldName("content")
                 .dataType(DataType.VarChar)
                 .maxLength(65535)
                 .build());
 
-        fields.add(CreateCollectionReq.FieldSchema.builder()
-                .name("embedding")
+        schema.addField(io.milvus.v2.service.collection.request.AddFieldReq.builder()
+                .fieldName("embedding")
                 .dataType(DataType.FloatVector)
                 .dimension(ragProperties.getEmbeddingDimension())
                 .build());
 
-        fields.add(CreateCollectionReq.FieldSchema.builder()
-                .name("source_file")
+        schema.addField(io.milvus.v2.service.collection.request.AddFieldReq.builder()
+                .fieldName("source_file")
                 .dataType(DataType.VarChar)
                 .maxLength(512)
                 .build());
 
-        fields.add(CreateCollectionReq.FieldSchema.builder()
-                .name("page_number")
+        schema.addField(io.milvus.v2.service.collection.request.AddFieldReq.builder()
+                .fieldName("page_number")
                 .dataType(DataType.Int64)
                 .build());
 
-        fields.add(CreateCollectionReq.FieldSchema.builder()
-                .name("section_title")
+        schema.addField(io.milvus.v2.service.collection.request.AddFieldReq.builder()
+                .fieldName("section_title")
                 .dataType(DataType.VarChar)
                 .maxLength(512)
                 .build());
 
-        fields.add(CreateCollectionReq.FieldSchema.builder()
-                .name("language")
+        schema.addField(io.milvus.v2.service.collection.request.AddFieldReq.builder()
+                .fieldName("language")
                 .dataType(DataType.VarChar)
                 .maxLength(16)
                 .build());
 
-        fields.add(CreateCollectionReq.FieldSchema.builder()
-                .name("document_type")
+        schema.addField(io.milvus.v2.service.collection.request.AddFieldReq.builder()
+                .fieldName("document_type")
                 .dataType(DataType.VarChar)
                 .maxLength(64)
                 .build());
 
-        milvusClient.createCollection(CreateCollectionReq.builder()
-                .collectionName(collectionName)
-                .fieldSchemaList(fields)
-                .enableDynamicField(true)
-                .build());
-
-        createIndex(collectionName);
-    }
-
-    private void createIndex(String collectionName) {
         IndexParam indexParam = IndexParam.builder()
                 .fieldName("embedding")
                 .indexType(IndexParam.IndexType.HNSW)
@@ -119,9 +110,11 @@ public class VectorStoreService {
                 ))
                 .build();
 
-        milvusClient.createIndex(io.milvus.v2.service.vector.request.IndexReq.builder()
+        milvusClient.createCollection(CreateCollectionReq.builder()
                 .collectionName(collectionName)
+                .collectionSchema(schema)
                 .indexParams(List.of(indexParam))
+                .enableDynamicField(true)
                 .build());
     }
 
@@ -131,9 +124,27 @@ public class VectorStoreService {
         }
 
         try {
+            List<com.google.gson.JsonObject> data = chunkMaps.stream().map(chunkMap -> {
+                com.google.gson.JsonObject jsonObject = new com.google.gson.JsonObject();
+                chunkMap.forEach((key, value) -> {
+                    if (value instanceof List) {
+                        com.google.gson.JsonArray jsonArray = new com.google.gson.JsonArray();
+                        @SuppressWarnings("unchecked")
+                        List<Float> floatList = (List<Float>) value;
+                        floatList.forEach(jsonArray::add);
+                        jsonObject.add(key, jsonArray);
+                    } else if (value instanceof String) {
+                        jsonObject.addProperty(key, (String) value);
+                    } else if (value instanceof Number) {
+                        jsonObject.addProperty(key, (Number) value);
+                    }
+                });
+                return jsonObject;
+            }).collect(Collectors.toList());
+
             InsertResp resp = milvusClient.insert(InsertReq.builder()
                     .collectionName(ragProperties.getCollectionName())
-                    .data(chunkMaps)
+                    .data(data)
                     .build());
 
             log.info("Inserted {} chunks into Milvus, insert count: {}",
@@ -147,16 +158,16 @@ public class VectorStoreService {
     public List<RetrievedContext> search(String query, int topK, Map<String, Object> filters) {
         long startTime = System.currentTimeMillis();
 
-        List<Double> queryEmbeddingList = embeddingModel.embed(query);
-
-        List<Float> queryVector = queryEmbeddingList.stream()
-                .map(Double::floatValue)
-                .collect(Collectors.toList());
+        float[] queryEmbedding = embeddingModel.embed(query);
+        List<Float> queryVector = new ArrayList<>(queryEmbedding.length);
+        for (float v : queryEmbedding) {
+            queryVector.add(v);
+        }
 
         SearchResp resp = milvusClient.search(SearchReq.builder()
                 .collectionName(ragProperties.getCollectionName())
                 .annsField("embedding")
-                .data(List.of(queryVector))
+                .data(List.of(new FloatVec(queryVector)))
                 .topK(topK)
                 .outputFields(List.of("id", "content", "source_file", "page_number",
                         "section_title", "language", "document_type"))
