@@ -10,15 +10,17 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class LibrarianAgentApplication {
 
     static {
-        try {
-            Dotenv dotenv = Dotenv.configure()
-                    .directory("./")
-                    .ignoreIfMissing()
-                    .load();
-            dotenv.entries().forEach(entry ->
-                    System.setProperty(entry.getKey(), entry.getValue()));
-        } catch (Exception e) {
-            System.err.println("Failed to load .env file: " + e.getMessage());
+        Dotenv dotenv = Dotenv.configure()
+                .ignoreIfMalformed()
+                .ignoreIfMissing()
+                .load();
+        
+        for (var entry : dotenv.entries()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (System.getProperty(key) == null && System.getenv(key) == null) {
+                System.setProperty(key, value);
+            }
         }
     }
 
