@@ -7,7 +7,7 @@ spring:
       api-key: ${LLM_API_KEY:your-api-key-here}
       chat:
         options:
-          model: ${LLM_MODEL:glm-4}
+          model: ${LLM_MODEL:glm-4.6v}
           temperature: ${LLM_TEMPERATURE:0.7}
       embedding:
         options:
@@ -31,7 +31,7 @@ server:
 
 logging:
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - requestId=%X{requestId} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight([%-5level]) [%yellow(%X{traceId})] [%thread] %cyan([%logger{50}]) - %msg%n"
   level:
     com.librarian: DEBUG
     org.springframework.ai: INFO
