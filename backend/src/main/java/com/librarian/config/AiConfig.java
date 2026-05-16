@@ -12,7 +12,8 @@ public class AiConfig {
 
     public enum ModelProvider {
         ZHIPUAI,
-        QWEN
+        QWEN,
+        MINIMAX
     }
 
     @Value("${rag.top-k:5}")

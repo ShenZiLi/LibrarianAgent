@@ -4,16 +4,16 @@
 # 可选值: ZHIPUAI (智谱GLM) | QWEN (通义千问)
 ai:
   model:
-    provider: ${AI_MODEL_PROVIDER:ZHIPUAI}
+    provider: ${AI_MODEL_PROVIDER:MINIMAX}
 
 spring:
   ai:
     openai:
-      base-url: ${AI_OPENAI_BASE_URL:https://open.bigmodel.cn/api/paas}
+      base-url: ${AI_OPENAI_BASE_URL:https://api.minimax.chat}
       api-key: ${AI_API_KEY:your-api-key-here}
       chat:
         options:
-          model: ${LLM_MODEL:glm-4.6v}
+          model: ${LLM_MODEL:MiniMax-M2.7}
           temperature: ${LLM_TEMPERATURE:0.7}
       embedding:
         options:
