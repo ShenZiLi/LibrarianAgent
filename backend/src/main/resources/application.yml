@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: librarian-agent
+  ai:
+    openai:
+      base-url: ${LLM_BASE_URL:https://open.bigmodel.cn/api/paas/v4/}
+      api-key: ${LLM_API_KEY:your-api-key-here}
+      chat:
+        options:
+          model: ${LLM_MODEL:glm-4}
+          temperature: ${LLM_TEMPERATURE:0.7}
+      embedding:
+        options:
+          model: ${EMBEDDING_MODEL:text-embedding-3-small}
+
+rag:
+  chunk-size: 512
+  chunk-overlap: 128
+  top-k: 5
+  similarity-threshold: 0.7
+  max-history-rounds: 10
+  session-timeout-minutes: 30
+
+chroma:
+  host: ${CHROMA_HOST:localhost}
+  port: ${CHROMA_PORT:8000}
+  collection-name: librarian-docs
+
+server:
+  port: ${SERVER_PORT:8080}
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - requestId=%X{requestId} - %msg%n"
+  level:
+    com.librarian: DEBUG
+    org.springframework.ai: INFO

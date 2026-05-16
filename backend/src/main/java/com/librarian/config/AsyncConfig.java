@@ -1,0 +1,30 @@
+package com.librarian.config;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.concurrent.Executor;
+
+@Configuration
+@EnableAsync
+public class AsyncConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(AsyncConfig.class);
+
+    @Bean(name = "documentIngestionExecutor")
+    public Executor documentIngestionExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(4);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("doc-ingestion-");
+        executor.setRejectedExecutionHandler((r, e) -> 
+            log.warn("Document ingestion queue is full, rejecting task"));
+        executor.initialize();
+        return executor;
+    }
+}
