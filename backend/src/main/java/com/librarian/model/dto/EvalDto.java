@@ -1,28 +1,38 @@
 package com.librarian.model.dto;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 public class EvalDto {
 
-    public record EvalConfig(
-            int topK,
-            boolean enableReranker,
-            double temperature,
-            String testSetPath
+    public record DocumentStats(
+            long totalDocuments,
+            long completedDocuments,
+            long processingDocuments,
+            long failedDocuments,
+            long totalChunks
     ) {}
 
-    public record EvalResult(
-            double faithfulness,
-            double contextPrecision,
-            double accuracy,
-            Map<String, Object> metrics,
-            java.time.Instant completedAt
+    public record QueryLog(
+            String query,
+            int retrievedDocs,
+            double avgSimilarity,
+            long retrievalTimeMs,
+            long generationTimeMs,
+            Instant timestamp
     ) {}
 
-    public record CostReport(
-            long totalInputTokens,
-            long totalOutputTokens,
-            double estimatedCostPer1000Calls,
-            Map<String, Double> sensitivityAnalysis
+    public record RetrievalMetrics(
+            double avgSimilarity,
+            long avgRetrievalTimeMs,
+            long avgGenerationTimeMs,
+            int totalQueries
+    ) {}
+
+    public record DashboardResponse(
+            DocumentStats documentStats,
+            List<QueryLog> recentQueries,
+            RetrievalMetrics retrievalMetrics
     ) {}
 }

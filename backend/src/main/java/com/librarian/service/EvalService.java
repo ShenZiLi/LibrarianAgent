@@ -1,50 +1,48 @@
 package com.librarian.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.librarian.mapper.DocumentRecordMapper;
+import com.librarian.mapper.VectorDocumentChunkMapper;
 import com.librarian.model.dto.EvalDto.*;
+import com.librarian.model.entity.DocumentRecord;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Slf4j
 @Service
 public class EvalService {
 
-    private EvalResult lastResult;
+    @Autowired
+    private DocumentRecordMapper documentRecordMapper;
+    @Autowired
+    private VectorDocumentChunkMapper vectorDocumentChunkMapper;
+    @Autowired
+    private QueryLogService queryLogService;
 
-    public void runEvaluation(EvalConfig config) {
-        log.info("Running evaluation with config: {}", config);
-        // TODO: Implement actual evaluation logic
-        lastResult = new EvalResult(
-                0.0, 0.0, 0.0,
-                Map.of("status", "not_implemented"),
-                Instant.now()
+    public DashboardResponse getDashboard() {
+        DocumentStats documentStats = buildDocumentStats();
+        List<QueryLog> recentQueries = queryLogService.getRecentQueries();
+        RetrievalMetrics retrievalMetrics = new RetrievalMetrics(
+                queryLogService.getAvgSimilarity(),
+                queryLogService.getAvgRetrievalTimeMs(),
+                queryLogService.getAvgGenerationTimeMs(),
+                queryLogService.getTotalQueries()
         );
+        return new DashboardResponse(documentStats, recentQueries, retrievalMetrics);
     }
 
-    public EvalResult getResults() {
-        if (lastResult == null) {
-            return new EvalResult(
-                    0.0, 0.0, 0.0,
-                    Map.of("status", "no_eval_run"),
-                    null
-            );
-        }
-        return lastResult;
-    }
-
-    public CostReport getCostEstimate(int topK, boolean enableReranker, double temperature) {
-        log.info("Estimating cost: topK={}, reranker={}, temp={}", topK, enableReranker, temperature);
-        
-        Map<String, Double> sensitivity = new HashMap<>();
-        sensitivity.put("top_k_" + topK, 0.0);
-        sensitivity.put("reranker_" + enableReranker, 0.0);
-        sensitivity.put("temperature_" + temperature, 0.0);
-
-        return new CostReport(
-                0, 0, 0.0, sensitivity
-        );
+    private DocumentStats buildDocumentStats() {
+        long total = documentRecordMapper.selectCount(new LambdaQueryWrapper<>());
+        long completed = documentRecordMapper.selectCount(
+                new LambdaQueryWrapper<DocumentRecord>().eq(DocumentRecord::getStatus, "completed"));
+        long processing = documentRecordMapper.selectCount(
+                new LambdaQueryWrapper<DocumentRecord>().eq(DocumentRecord::getStatus, "processing"));
+        long failed = documentRecordMapper.selectCount(
+                new LambdaQueryWrapper<DocumentRecord>().eq(DocumentRecord::getStatus, "failed"));
+        long totalChunks = vectorDocumentChunkMapper.selectCount(new LambdaQueryWrapper<>());
+        return new DocumentStats(total, completed, processing, failed, totalChunks);
     }
 }

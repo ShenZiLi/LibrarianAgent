@@ -1,14 +1,29 @@
-export interface EvalResult {
-  faithfulness: number
-  contextPrecision: number
-  accuracy: number
-  metrics: Record<string, unknown>
-  completedAt: string | null
+export interface DocumentStats {
+  totalDocuments: number
+  completedDocuments: number
+  processingDocuments: number
+  failedDocuments: number
+  totalChunks: number
 }
 
-export interface CostReport {
-  totalInputTokens: number
-  totalOutputTokens: number
-  estimatedCostPer1000Calls: number
-  sensitivityAnalysis: Record<string, number>
+export interface QueryLog {
+  query: string
+  retrievedDocs: number
+  avgSimilarity: number
+  retrievalTimeMs: number
+  generationTimeMs: number
+  timestamp: string
+}
+
+export interface RetrievalMetrics {
+  avgSimilarity: number
+  avgRetrievalTimeMs: number
+  avgGenerationTimeMs: number
+  totalQueries: number
+}
+
+export interface DashboardResponse {
+  documentStats: DocumentStats
+  recentQueries: QueryLog[]
+  retrievalMetrics: RetrievalMetrics
 }

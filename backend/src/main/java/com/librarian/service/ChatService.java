@@ -35,6 +35,8 @@ public class ChatService {
     private ContextBuilder contextBuilder;
     @Autowired
     private LlmGenerator llmGenerator;
+    @Autowired
+    private QueryLogService queryLogService;
 
     public SessionResponse createSession(CreateSessionRequest request) {
         String title = request != null ? request.title() : "New Conversation";
@@ -107,6 +109,7 @@ public class ChatService {
 
             double avgSimilarity = calculateAvgSimilarity(searchResults);
             LoggerUtil.logChatMetrics(log, retrievalTime, generationTime, searchResults.size(), avgSimilarity);
+            queryLogService.recordQuery(rewrittenQuery, searchResults.size(), avgSimilarity, retrievalTime, generationTime);
 
             return toMessageResponse(assistantMessage);
         } catch (NonTransientAiException e) {
