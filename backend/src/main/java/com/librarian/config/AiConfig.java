@@ -1,5 +1,6 @@
 package com.librarian.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.api.OpenAiApi;
@@ -7,11 +8,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+@Slf4j
 @Configuration
 public class AiConfig {
 
     public enum ModelProvider {
-        ZHIPUAI,
+        ZHIPU,
         QWEN,
         MINIMAX
     }
@@ -80,6 +82,24 @@ public class AiConfig {
         return ChatClient.builder(openAiChatModel)
                 .defaultSystem("你是一个企业知识库助手。请基于提供的上下文回答问题。")
                 .build();
+    }
+
+    @Bean
+    public AiModelInfoPrinter aiModelInfoPrinter(
+            @Value("${ai.model.provider:ZHIPUAI}") ModelProvider provider,
+            @Value("${spring.ai.openai.chat.options.model:glm-4}") String chatModel,
+            @Value("${spring.ai.openai.embedding.options.model:embedding-3}") String embeddingModel,
+            @Value("${spring.ai.openai.base-url}") String baseUrl) {
+        log.info("========== AI Model Configuration ==========");
+        log.info("Provider     : {}", provider);
+        log.info("Chat Model   : {}", chatModel);
+        log.info("Embedding     : {}", embeddingModel);
+        log.info("Base URL     : {}", baseUrl);
+        log.info("================================================");
+        return new AiModelInfoPrinter();
+    }
+
+    public static class AiModelInfoPrinter {
     }
 
     public int getTopK() {

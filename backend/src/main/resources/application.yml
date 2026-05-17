@@ -4,16 +4,28 @@
 # 可选值: ZHIPUAI (智谱GLM) | QWEN (通义千问)
 ai:
   model:
-    provider: ${AI_MODEL_PROVIDER:MINIMAX}
+    provider: ${AI_MODEL_PROVIDER:ZHIPUAI}
 
 spring:
+  application:
+    name: HealthAgent
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:backend/.env[.properties]
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java,src/main/resources
+    livereload:
+      enabled: true
   ai:
     openai:
       base-url: ${AI_OPENAI_BASE_URL:https://api.minimax.chat}
       api-key: ${AI_API_KEY:your-api-key-here}
       chat:
         options:
-          model: ${LLM_MODEL:MiniMax-M2.7}
+          model: ${AI_LLM_MODEL:MiniMax-M2.7}
           temperature: ${LLM_TEMPERATURE:0.7}
       embedding:
         options:
