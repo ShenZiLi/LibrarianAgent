@@ -5,6 +5,15 @@ export interface DocumentResponse {
   fileSize: number
   status: string
   chunkCount: number
+  errorMessage: string | null
   createdAt: string
-  processedAt: string | null
+  updatedAt: string | null
+}
+
+export interface PageResponse<T> {
+  records: T[]
+  total: number
+  size: number
+  current: number
+  pages: number
 }
