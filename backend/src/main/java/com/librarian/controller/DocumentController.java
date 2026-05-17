@@ -24,7 +24,13 @@ public class DocumentController {
     public ResponseEntity<String> uploadDocument(@RequestParam("file") MultipartFile file) {
         LoggerUtil.setRequestId();
         log.info("Uploading document: {}", file.getOriginalFilename());
-        ingestionService.ingestDocument(file);
+        try {
+            byte[] fileContent = file.getBytes();
+            ingestionService.ingestDocument(fileContent, file.getOriginalFilename(), file.getContentType(), file.getSize());
+        } catch (Exception e) {
+            log.error("Failed to read uploaded file: {}", file.getOriginalFilename(), e);
+            return ResponseEntity.internalServerError().body("Failed to read uploaded file");
+        }
         return ResponseEntity.accepted().body("Document upload accepted for processing");
     }
 

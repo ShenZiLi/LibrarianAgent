@@ -26,8 +26,7 @@ public class DocumentParser {
 
     private static final int OCR_DPI = 150;
 
-    public List<DocumentChunk> parse(MultipartFile file) {
-        String filename = file.getOriginalFilename();
+    public List<DocumentChunk> parse(byte[] content, String filename) {
         log.info("Parsing document: {}", filename);
 
         if (filename == null) {
@@ -35,18 +34,27 @@ public class DocumentParser {
         }
 
         if (filename.toLowerCase().endsWith(".pdf")) {
-            return parsePdf(file, filename);
+            return parsePdf(content, filename);
         } else if (filename.toLowerCase().endsWith(".md") ||
                    filename.toLowerCase().endsWith(".txt")) {
-            return parseMarkdown(file, filename);
+            return parseMarkdown(content, filename);
         }
 
         log.warn("Unsupported file format: {}", filename);
         return List.of();
     }
 
-    private List<DocumentChunk> parsePdf(MultipartFile file, String filename) {
-        try (PDDocument document = Loader.loadPDF(file.getBytes())) {
+    public List<DocumentChunk> parse(MultipartFile file) {
+        try {
+            return parse(file.getBytes(), file.getOriginalFilename());
+        } catch (IOException e) {
+            log.error("Failed to read file content: {}", file.getOriginalFilename(), e);
+            return List.of();
+        }
+    }
+
+    private List<DocumentChunk> parsePdf(byte[] content, String filename) {
+        try (PDDocument document = Loader.loadPDF(content)) {
             PDFTextStripper stripper = new PDFTextStripper();
             stripper.setSortByPosition(true);
             String text = stripper.getText(document);
@@ -101,20 +109,15 @@ public class DocumentParser {
         return chunks;
     }
 
-    private List<DocumentChunk> parseMarkdown(MultipartFile file, String filename) {
-        try {
-            String content = new String(file.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+    private List<DocumentChunk> parseMarkdown(byte[] content, String filename) {
+        String text = new String(content, StandardCharsets.UTF_8);
 
-            DocumentChunk chunk = new DocumentChunk();
-            chunk.setDocumentId(UUID.randomUUID().toString());
-            chunk.setContent(content);
-            chunk.addMetadata("fileName", filename);
-            chunk.addMetadata("fileType", filename.endsWith(".md") ? "markdown" : "text");
+        DocumentChunk chunk = new DocumentChunk();
+        chunk.setDocumentId(UUID.randomUUID().toString());
+        chunk.setContent(text);
+        chunk.addMetadata("fileName", filename);
+        chunk.addMetadata("fileType", filename.endsWith(".md") ? "markdown" : "text");
 
-            return List.of(chunk);
-        } catch (IOException e) {
-            log.error("Failed to parse text file: {}", filename, e);
-            return List.of();
-        }
+        return List.of(chunk);
     }
 }

@@ -17,7 +17,6 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -51,22 +50,22 @@ public class IngestionService {
     }
 
     @Async("documentIngestionExecutor")
-    public void ingestDocument(MultipartFile file) {
+    public void ingestDocument(byte[] fileContent, String fileName, String contentType, long fileSize) {
         String documentId = UUID.randomUUID().toString();
-        log.info("Starting document ingestion: {} (id={})", file.getOriginalFilename(), documentId);
+        log.info("Starting document ingestion: {} (id={})", fileName, documentId);
 
         DocumentRecord record = new DocumentRecord();
         record.setDocumentId(documentId);
-        record.setFileName(file.getOriginalFilename());
-        record.setFileType(file.getContentType());
-        record.setFileSize(file.getSize());
+        record.setFileName(fileName);
+        record.setFileType(contentType);
+        record.setFileSize(fileSize);
         record.setStatus("processing");
         record.setChunkCount(0);
         record.setCreatedAt(Instant.now());
         record.setUpdatedAt(Instant.now());
         documentRecordMapper.insert(record);
 
-        doIngest(record, file);
+        doIngest(record, fileContent);
     }
 
     public void retryDocument(String documentId) {
@@ -102,17 +101,17 @@ public class IngestionService {
         record.setUpdatedAt(Instant.now());
         documentRecordMapper.updateById(record);
 
-        doIngest(record, null);
+        doIngest(record, (byte[]) null);
     }
 
-    private void doIngest(DocumentRecord record, MultipartFile file) {
+    private void doIngest(DocumentRecord record, byte[] fileContent) {
         String documentId = record.getDocumentId();
         try {
-            if (file == null) {
+            if (fileContent == null || fileContent.length == 0) {
                 throw new RuntimeException("File data not available for retry. Please re-upload the document.");
             }
 
-            List<DocumentChunk> parsedChunks = documentParser.parse(file);
+            List<DocumentChunk> parsedChunks = documentParser.parse(fileContent, record.getFileName());
             if (parsedChunks.isEmpty()) {
                 throw new RuntimeException("No content extracted from document");
             }
