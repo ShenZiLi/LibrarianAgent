@@ -2,6 +2,7 @@ package com.librarian.service.rag;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -14,14 +15,11 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class LlmGenerator {
 
-    private final ChatClient chatClient;
-    private final Resource promptResource;
-
-    public LlmGenerator(@Qualifier("ragChatClient") ChatClient chatClient,
-                        @Value("classpath:prompts/rag-system-prompt.st") Resource promptResource) {
-        this.chatClient = chatClient;
-        this.promptResource = promptResource;
-    }
+    @Autowired
+    @Qualifier("ragChatClient")
+    private ChatClient chatClient;
+    @Value("classpath:prompts/rag-system-prompt.st")
+    private Resource promptResource;
 
     public String generate(String context, String question) {
         log.info("Generating answer with context length: {}", context.length());

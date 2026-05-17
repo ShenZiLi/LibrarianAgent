@@ -5,6 +5,7 @@ import com.librarian.model.dto.DocumentDto.DocumentResponse;
 import com.librarian.service.IngestionService;
 import com.librarian.util.LoggerUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,11 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/v1/documents")
 public class DocumentController {
 
-    private final IngestionService ingestionService;
-
-    public DocumentController(IngestionService ingestionService) {
-        this.ingestionService = ingestionService;
-    }
+    @Autowired
+    private IngestionService ingestionService;
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadDocument(@RequestParam("file") MultipartFile file) {

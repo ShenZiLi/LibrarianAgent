@@ -4,6 +4,7 @@ import com.librarian.model.dto.EvalDto.*;
 import com.librarian.service.EvalService;
 import com.librarian.util.LoggerUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -11,11 +12,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/eval")
 public class EvalController {
 
-    private final EvalService evalService;
-
-    public EvalController(EvalService evalService) {
-        this.evalService = evalService;
-    }
+    @Autowired
+    private EvalService evalService;
 
     @PostMapping("/run")
     public String runEvaluation(@RequestBody(required = false) EvalConfig config) {

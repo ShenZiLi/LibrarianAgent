@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -14,13 +15,10 @@ import java.util.List;
 @Component
 public class VectorSearch {
 
-    private final VectorStore vectorStore;
-    private final RagProperties ragProperties;
-
-    public VectorSearch(VectorStore vectorStore, RagProperties ragProperties) {
-        this.vectorStore = vectorStore;
-        this.ragProperties = ragProperties;
-    }
+    @Autowired
+    private VectorStore vectorStore;
+    @Autowired
+    private RagProperties ragProperties;
 
     public List<DocumentChunk> search(String query) {
         return search(query, ragProperties.getTopK());

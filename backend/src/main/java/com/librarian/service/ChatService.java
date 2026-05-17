@@ -8,6 +8,7 @@ import com.librarian.model.entity.DocumentChunk;
 import com.librarian.service.rag.*;
 import com.librarian.util.LoggerUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -23,23 +24,16 @@ import java.util.List;
 public class ChatService {
 
     private final java.util.Map<String, ConversationSession> sessions = new java.util.concurrent.ConcurrentHashMap<>();
-    private final RagProperties ragProperties;
-    private final QueryRewriter queryRewriter;
-    private final VectorSearch vectorSearch;
-    private final ContextBuilder contextBuilder;
-    private final LlmGenerator llmGenerator;
-
-    public ChatService(RagProperties ragProperties,
-                       QueryRewriter queryRewriter,
-                       VectorSearch vectorSearch,
-                       ContextBuilder contextBuilder,
-                       LlmGenerator llmGenerator) {
-        this.ragProperties = ragProperties;
-        this.queryRewriter = queryRewriter;
-        this.vectorSearch = vectorSearch;
-        this.contextBuilder = contextBuilder;
-        this.llmGenerator = llmGenerator;
-    }
+    @Autowired
+    private RagProperties ragProperties;
+    @Autowired
+    private QueryRewriter queryRewriter;
+    @Autowired
+    private VectorSearch vectorSearch;
+    @Autowired
+    private ContextBuilder contextBuilder;
+    @Autowired
+    private LlmGenerator llmGenerator;
 
     public SessionResponse createSession(CreateSessionRequest request) {
         String title = request != null ? request.title() : "New Conversation";

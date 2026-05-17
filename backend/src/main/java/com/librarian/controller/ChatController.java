@@ -4,6 +4,7 @@ import com.librarian.model.dto.ChatDto.*;
 import com.librarian.service.ChatService;
 import com.librarian.util.LoggerUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -15,11 +16,8 @@ import java.util.List;
 @RequestMapping("/api/v1/chat/sessions")
 public class ChatController {
 
-    private final ChatService chatService;
-
-    public ChatController(ChatService chatService) {
-        this.chatService = chatService;
-    }
+    @Autowired
+    private ChatService chatService;
 
     @PostMapping
     public SessionResponse createSession(@RequestBody(required = false) CreateSessionRequest request) {

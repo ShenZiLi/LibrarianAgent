@@ -2,6 +2,7 @@ package com.librarian.service.rag;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -11,11 +12,9 @@ import java.util.List;
 @Component
 public class QueryRewriter {
 
-    private final ChatClient chatClient;
-
-    public QueryRewriter(@Qualifier("queryRewriteChatClient") ChatClient chatClient) {
-        this.chatClient = chatClient;
-    }
+    @Autowired
+    @Qualifier("queryRewriteChatClient")
+    private ChatClient chatClient;
 
     public String rewrite(String query, List<com.librarian.model.entity.Message> history) {
         if (history == null || history.isEmpty()) {

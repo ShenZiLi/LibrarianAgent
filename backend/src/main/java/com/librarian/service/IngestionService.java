@@ -14,6 +14,7 @@ import com.librarian.service.rag.TextChunker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -28,26 +29,18 @@ import java.util.UUID;
 @Service
 public class IngestionService {
 
-    private final DocumentRecordMapper documentRecordMapper;
-    private final VectorDocumentChunkMapper vectorDocumentChunkMapper;
-    private final DocumentParser documentParser;
-    private final TextChunker textChunker;
-    private final VectorStore vectorStore;
-    private final RagProperties ragProperties;
-
-    public IngestionService(DocumentRecordMapper documentRecordMapper,
-                            VectorDocumentChunkMapper vectorDocumentChunkMapper,
-                            DocumentParser documentParser,
-                            TextChunker textChunker,
-                            VectorStore vectorStore,
-                            RagProperties ragProperties) {
-        this.documentRecordMapper = documentRecordMapper;
-        this.vectorDocumentChunkMapper = vectorDocumentChunkMapper;
-        this.documentParser = documentParser;
-        this.textChunker = textChunker;
-        this.vectorStore = vectorStore;
-        this.ragProperties = ragProperties;
-    }
+    @Autowired
+    private DocumentRecordMapper documentRecordMapper;
+    @Autowired
+    private VectorDocumentChunkMapper vectorDocumentChunkMapper;
+    @Autowired
+    private DocumentParser documentParser;
+    @Autowired
+    private TextChunker textChunker;
+    @Autowired
+    private VectorStore vectorStore;
+    @Autowired
+    private RagProperties ragProperties;
 
     @Async("documentIngestionExecutor")
     public void ingestDocument(byte[] fileContent, String fileName, String contentType, long fileSize) {
