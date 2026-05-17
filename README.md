@@ -25,11 +25,11 @@
 
 **对话界面：**
 
-![新对话](images/1-1新对话.png)
+![新对话](images/1-1新对话.jpg)
 
 **RAG 检索结果：**
 
-![RAG检索](images/1-2RAG检索.png)
+![RAG检索](images/1-2RAG检索.jpg)
 
 ---
 
@@ -129,11 +129,11 @@ flowchart TD
 
 **应用启动日志：**
 
-![运行日志](images/4-1运行日志.png)
+![运行日志](images/4-1运行日志.jpg)
 
 **模型加载日志：**
 
-![模型加载日志](images/4-2模型加载日志.png)
+![模型加载日志](images/4-2模型加载日志.jpg)
 
 ---
 
@@ -179,11 +179,11 @@ sequenceDiagram
 
 #### 文档管理截图
 
-![文档管理](images/2-1文档管理.png)
+![文档管理](images/2-1文档管理.jpg)
 
-![文档上传](images/2-2文档上传.png)
+![文档上传](images/2-2文档上传.jpg)
 
-![上传成功](images/2-3上传成功.png)
+![上传成功](images/2-3上传成功.jpg)
 
 ### 4.2 RAG 检索管道
 
@@ -210,7 +210,7 @@ flowchart LR
 
 #### RAG 检索截图
 
-![RAG检索](images/1-2RAG检索.png)
+![RAG检索](images/1-2RAG检索.jpg)
 
 ### 4.3 对话管理
 
@@ -313,7 +313,7 @@ flowchart TD
 
 #### 监控面板截图
 
-![监控面板](images/3-1监控面板.png)
+![监控面板](images/3-1监控面板.jpg)
 
 ---
 
@@ -381,11 +381,11 @@ erDiagram
 
 **MySQL 数据库：**
 
-![MySQL数据库](images/5-3mysql数据库.png)
+![MySQL数据库](images/5-3mysql数据库.jpg)
 
 **ChromaDB 数据库：**
 
-![ChromaDB数据库](images/5-4chroma数据库.png)
+![ChromaDB数据库](images/5-4chroma数据库.jpg)
 
 ---
 
@@ -554,11 +554,11 @@ graph LR
 
 **Trae IDE：**
 
-![开发环境Trae](images/5-1开发环境Trae.png)
+![开发环境Trae](images/5-1开发环境Trae.jpg)
 
 **IntelliJ IDEA：**
 
-![开发环境IDEA](images/5-2开发环境-idea.png)
+![开发环境IDEA](images/5-2开发环境-idea.jpg)
 
 ### 8.3 环境配置
 
