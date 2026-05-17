@@ -11,7 +11,8 @@ public class DocumentDto {
             long fileSize,
             String status,
             int chunkCount,
+            String errorMessage,
             Instant createdAt,
-            Instant processedAt
+            Instant updatedAt
     ) {}
 }

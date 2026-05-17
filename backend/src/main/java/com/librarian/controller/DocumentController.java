@@ -1,5 +1,6 @@
 package com.librarian.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.librarian.model.dto.DocumentDto.DocumentResponse;
 import com.librarian.service.IngestionService;
 import com.librarian.util.LoggerUtil;
@@ -7,8 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -30,10 +29,13 @@ public class DocumentController {
     }
 
     @GetMapping
-    public List<DocumentResponse> listDocuments() {
+    public Page<DocumentResponse> listDocuments(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String status) {
         LoggerUtil.setRequestId();
-        log.info("Listing all documents");
-        return ingestionService.listDocuments();
+        log.info("Listing documents: page={}, size={}, status={}", page, size, status);
+        return ingestionService.listDocuments(page, size, status);
     }
 
     @GetMapping("/{documentId}")
@@ -49,5 +51,13 @@ public class DocumentController {
         log.info("Deleting document: {}", documentId);
         ingestionService.deleteDocument(documentId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{documentId}/retry")
+    public ResponseEntity<String> retryDocument(@PathVariable String documentId) {
+        LoggerUtil.setRequestId();
+        log.info("Retrying document: {}", documentId);
+        ingestionService.retryDocument(documentId);
+        return ResponseEntity.accepted().body("Document retry accepted for processing");
     }
 }
