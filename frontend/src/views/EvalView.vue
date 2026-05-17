@@ -1,7 +1,7 @@
 <template>
   <div class="eval-view">
     <div class="view-header">
-      <h1 class="view-title">RAG 监控面板</h1>
+      <h1 class="view-title">监控面板</h1>
       <el-button @click="fetchDashboard" :loading="loading">
         <el-icon><Refresh /></el-icon>
         刷新
@@ -106,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { getDashboard } from '@/api/eval'
 import type { DashboardResponse } from '@/types/eval'
 import { ElMessage } from 'element-plus'
@@ -129,6 +129,8 @@ const dashboard = ref<Partial<DashboardResponse>>({
     totalQueries: 0,
   },
 })
+
+let pollTimer: ReturnType<typeof setInterval> | null = null
 
 async function fetchDashboard() {
   loading.value = true
@@ -159,5 +161,15 @@ function formatTime(timestamp: string): string {
   return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
-onMounted(fetchDashboard)
+onMounted(() => {
+  fetchDashboard()
+  pollTimer = setInterval(fetchDashboard, 10000)
+})
+
+onUnmounted(() => {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+})
 </script>

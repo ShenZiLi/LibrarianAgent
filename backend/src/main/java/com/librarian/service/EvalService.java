@@ -4,12 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.librarian.mapper.DocumentRecordMapper;
 import com.librarian.mapper.VectorDocumentChunkMapper;
 import com.librarian.model.dto.EvalDto.*;
-import com.librarian.model.entity.DocumentRecord;
+import com.librarian.model.entity.VectorDocumentChunk;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -35,14 +36,19 @@ public class EvalService {
     }
 
     private DocumentStats buildDocumentStats() {
-        long total = documentRecordMapper.selectCount(new LambdaQueryWrapper<>());
-        long completed = documentRecordMapper.selectCount(
-                new LambdaQueryWrapper<DocumentRecord>().eq(DocumentRecord::getStatus, "completed"));
-        long processing = documentRecordMapper.selectCount(
-                new LambdaQueryWrapper<DocumentRecord>().eq(DocumentRecord::getStatus, "processing"));
-        long failed = documentRecordMapper.selectCount(
-                new LambdaQueryWrapper<DocumentRecord>().eq(DocumentRecord::getStatus, "failed"));
-        long totalChunks = vectorDocumentChunkMapper.selectCount(new LambdaQueryWrapper<>());
+        long total = 0, completed = 0, processing = 0, failed = 0;
+        List<Map<String, Object>> statusCounts = documentRecordMapper.countByStatus();
+        for (Map<String, Object> row : statusCounts) {
+            String status = (String) row.get("status");
+            long cnt = ((Number) row.get("cnt")).longValue();
+            total += cnt;
+            switch (status) {
+                case "completed" -> completed = cnt;
+                case "processing" -> processing = cnt;
+                case "failed" -> failed = cnt;
+            }
+        }
+        long totalChunks = vectorDocumentChunkMapper.selectCount(new LambdaQueryWrapper<VectorDocumentChunk>());
         return new DocumentStats(total, completed, processing, failed, totalChunks);
     }
 }

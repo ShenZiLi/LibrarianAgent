@@ -28,3 +28,14 @@ CREATE TABLE IF NOT EXISTS document_chunk (
     created_at   DATETIME NOT NULL,
     INDEX idx_document_id (document_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS query_log (
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    query               VARCHAR(1024) NOT NULL,
+    retrieved_docs      INT NOT NULL DEFAULT 0,
+    avg_similarity      DOUBLE NOT NULL DEFAULT 0,
+    retrieval_time_ms   BIGINT NOT NULL DEFAULT 0,
+    generation_time_ms  BIGINT NOT NULL DEFAULT 0,
+    created_at          DATETIME NOT NULL,
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

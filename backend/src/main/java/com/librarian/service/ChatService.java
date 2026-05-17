@@ -141,61 +141,12 @@ public class ChatService {
 
         List<Message> history = session.getRecentHistory(ragProperties.getMaxHistoryRounds());
 
+        long retrievalStart = System.currentTimeMillis();
+        String rewrittenQuery;
+        List<DocumentChunk> searchResults;
         try {
-            String rewrittenQuery = queryRewriter.rewrite(request.content(), history);
-            List<DocumentChunk> searchResults = vectorSearch.search(rewrittenQuery, ragProperties.getTopK(), 0.0);
-
-            String context;
-            List<String> citations;
-
-            if (searchResults.isEmpty()) {
-                log.info("No relevant documents found in vector store, streaming answer without context");
-                context = "[未检索到相关知识库文档，请基于你的通用知识回答用户问题，并说明回答不来自知识库]";
-                citations = Collections.emptyList();
-            } else {
-                context = contextBuilder.build(searchResults);
-                citations = contextBuilder.buildCitations(searchResults);
-            }
-
-            Flux<String> contentFlux = llmGenerator.generateStream(context, rewrittenQuery);
-            StringBuilder fullAnswer = new StringBuilder();
-
-            contentFlux.subscribe(
-                    chunk -> {
-                        try {
-                            fullAnswer.append(chunk);
-                            sendSseMessage(emitter, chunk);
-                        } catch (IOException e) {
-                            log.error("Failed to send SSE chunk: {}", e.getMessage());
-                            emitter.completeWithError(e);
-                        }
-                    },
-                    error -> {
-                        log.error("SSE stream error: {}", error.getMessage());
-                        try {
-                            sendSseMessage(emitter, "\n\n[错误: 生成回答时出现问题]");
-                            sendSseEvent(emitter, "done", "error");
-                            emitter.complete();
-                        } catch (IOException e) {
-                            emitter.completeWithError(error);
-                        }
-                    },
-                    () -> {
-                        try {
-                            String citationsJson = citations.toString();
-                            sendSseEvent(emitter, "citations", citationsJson);
-                            sendSseEvent(emitter, "done", "done");
-                            emitter.complete();
-
-                            Message assistantMessage = new Message(Message.ROLE_ASSISTANT,
-                                    fullAnswer.toString(), citations);
-                            session.addMessage(assistantMessage);
-                        } catch (IOException e) {
-                            log.error("Failed to complete SSE stream: {}", e.getMessage());
-                            emitter.completeWithError(e);
-                        }
-                    }
-            );
+            rewrittenQuery = queryRewriter.rewrite(request.content(), history);
+            searchResults = vectorSearch.search(rewrittenQuery, ragProperties.getTopK(), 0.0);
         } catch (NonTransientAiException e) {
             log.error("AI model call failed during streaming: {}", e.getMessage());
             try {
@@ -205,6 +156,7 @@ public class ChatService {
             } catch (IOException ex) {
                 emitter.completeWithError(ex);
             }
+            return emitter;
         } catch (Exception e) {
             log.error("Unexpected error during streaming: {}", e.getMessage());
             try {
@@ -214,7 +166,66 @@ public class ChatService {
             } catch (IOException ex) {
                 emitter.completeWithError(ex);
             }
+            return emitter;
         }
+        long retrievalTime = System.currentTimeMillis() - retrievalStart;
+
+        String context;
+        List<String> citations;
+
+        if (searchResults.isEmpty()) {
+            log.info("No relevant documents found in vector store, streaming answer without context");
+            context = "[未检索到相关知识库文档，请基于你的通用知识回答用户问题，并说明回答不来自知识库]";
+            citations = Collections.emptyList();
+        } else {
+            context = contextBuilder.build(searchResults);
+            citations = contextBuilder.buildCitations(searchResults);
+        }
+
+        long generationStart = System.currentTimeMillis();
+        Flux<String> contentFlux = llmGenerator.generateStream(context, rewrittenQuery);
+        StringBuilder fullAnswer = new StringBuilder();
+
+        contentFlux.subscribe(
+                chunk -> {
+                    try {
+                        fullAnswer.append(chunk);
+                        sendSseMessage(emitter, chunk);
+                    } catch (IOException e) {
+                        log.error("Failed to send SSE chunk: {}", e.getMessage());
+                        emitter.completeWithError(e);
+                    }
+                },
+                error -> {
+                    log.error("SSE stream error: {}", error.getMessage());
+                    try {
+                        sendSseMessage(emitter, "\n\n[错误: 生成回答时出现问题]");
+                        sendSseEvent(emitter, "done", "error");
+                        emitter.complete();
+                    } catch (IOException e) {
+                        emitter.completeWithError(error);
+                    }
+                },
+                () -> {
+                    try {
+                        long generationTime = System.currentTimeMillis() - generationStart;
+                        String citationsJson = citations.toString();
+                        sendSseEvent(emitter, "citations", citationsJson);
+                        sendSseEvent(emitter, "done", "done");
+                        emitter.complete();
+
+                        Message assistantMessage = new Message(Message.ROLE_ASSISTANT,
+                                fullAnswer.toString(), citations);
+                        session.addMessage(assistantMessage);
+
+                        double avgSimilarity = calculateAvgSimilarity(searchResults);
+                        queryLogService.recordQuery(rewrittenQuery, searchResults.size(), avgSimilarity, retrievalTime, generationTime);
+                    } catch (IOException e) {
+                        log.error("Failed to complete SSE stream: {}", e.getMessage());
+                        emitter.completeWithError(e);
+                    }
+                }
+        );
 
         return emitter;
     }

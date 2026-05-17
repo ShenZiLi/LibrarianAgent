@@ -45,7 +45,7 @@
 
         <router-link to="/eval" class="nav-item" active-class="active">
           <el-icon><DataAnalysis /></el-icon>
-          <span v-show="!isCollapsed">评估面板</span>
+          <span v-show="!isCollapsed">监控面板</span>
         </router-link>
       </nav>
     </aside>
