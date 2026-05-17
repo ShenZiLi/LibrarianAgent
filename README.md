@@ -1,6 +1,6 @@
 # LibrarianAgent 系统详细设计文档
 
-## RAG + 生成式人工智能服务 — 实际实现版
+## RAG + 生成式人工智能服务
 
 ---
 
@@ -161,9 +161,9 @@ sequenceDiagram
     Note over IS: @Async 异步执行
     IS->>DB: INSERT document_record (status=processing)
     IS->>DP: parse(byte[], fileName)
-    DP-->>IS: List&lt;DocumentChunk&gt;
+    DP-->>IS: List&ltDocumentChunk&gt;
     IS->>TC: chunkAll(parsedChunks)
-    TC-->>IS: List&lt;DocumentChunk&gt; (分块后)
+    TC-->>IS: List&ltDocumentChunk&gt (分块后);
     IS->>VS: add(aiDocuments) [含 Embedding]
     VS-->>IS: 返回 vector IDs
     IS->>DB: INSERT document_chunk (记录 vectorId)
@@ -277,7 +277,7 @@ sequenceDiagram
 flowchart TD
     subgraph 数据源
         A[MySQL<br/>document_record<br/>document_chunk<br/>query_log]
-        B[QueryLogService<br/>内存缓存(50条)]
+        B[QueryLogService<br/>内存缓存]
     end
 
     subgraph 聚合层
@@ -466,11 +466,11 @@ erDiagram
 ### 7.2 页面路由与组件结构
 
 ```mermaid
-graph TD
+flowchart TD
     subgraph Router["Vue Router"]
-        R1[/ → HomeView]
-        R2[/documents → DocumentView]
-        R3[/eval → EvalView]
+        R1["/ → HomeView"]
+        R2["/documents → DocumentView"]
+        R3["/eval → EvalView"]
     end
 
     subgraph HomeView["HomeView (对话页)"]
@@ -491,9 +491,9 @@ graph TD
         CS[分块统计]
     end
 
-    R1 --> HomeView
-    R2 --> DocumentView
-    R3 --> EvalView
+    R1 --> CW
+    R2 --> UL
+    R3 --> SC
 ```
 
 ### 7.3 状态管理
