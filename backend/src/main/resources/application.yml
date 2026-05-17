@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: librarian-agent
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:backend/.env[.properties]
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/librarian?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai}
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  ai:
+    openai:
+      base-url: ${AI_OPENAI_BASE_URL:}
+      api-key: ${AI_API_KEY:your-api-key-here}
+      chat:
+        options:
+          model: ${AI_CHAT_MODEL:}
+          temperature: ${AI_TEMPERATURE:0.7}
+      embedding:
+        options:
+          model: ${AI_EMBEDDING_MODEL:embedding-3}
+          dimensions: ${AI_EMBEDDING_DIMENSIONS:512}
+    vectorstore:
+      chroma:
+        collection-name: ${CHROMA_COLLECTION:librarian-docs}
+        initialize-schema: true
+        tenant-name: ${CHROMA_TENANT:SpringAiTenant}
+        database-name: ${CHROMA_DATABASE:SpringAiDatabase}
+        client:
+          host: ${CHROMA_HOST:http://localhost}
+          port: ${CHROMA_PORT:8000}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+rag:
+  chunk-size: 512
+  chunk-overlap: 128
+  top-k: 5
+  similarity-threshold: 0.3
+  max-history-rounds: 10
+  session-timeout-minutes: 30
+  processing-timeout-minutes: 10
+  processing-check-interval: 300000
+
+server:
+  port: ${SERVER_PORT:8080}
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight([%-5level]) [%yellow(%X{traceId})] [%thread] %cyan([%logger{50}]) - %msg%n"
+  level:
+    com.librarian: DEBUG
+    org.springframework.ai: INFO
