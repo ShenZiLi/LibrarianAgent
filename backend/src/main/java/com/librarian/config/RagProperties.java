@@ -15,4 +15,6 @@ public class RagProperties {
     private double similarityThreshold = 0.7;
     private int maxHistoryRounds = 10;
     private int sessionTimeoutMinutes = 30;
+    private int processingTimeoutMinutes = 10;
+    private int processingCheckInterval = 300000;
 }
