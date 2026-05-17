@@ -46,7 +46,7 @@ rag:
   chunk-size: 512
   chunk-overlap: 128
   top-k: 5
-  similarity-threshold: 0.7
+  similarity-threshold: 0.3
   max-history-rounds: 10
   session-timeout-minutes: 30
   processing-timeout-minutes: 10

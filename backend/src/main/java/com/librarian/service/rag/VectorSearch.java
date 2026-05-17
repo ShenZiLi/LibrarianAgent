@@ -21,16 +21,20 @@ public class VectorSearch {
     private RagProperties ragProperties;
 
     public List<DocumentChunk> search(String query) {
-        return search(query, ragProperties.getTopK());
+        return search(query, ragProperties.getTopK(), ragProperties.getSimilarityThreshold());
     }
 
     public List<DocumentChunk> search(String query, int topK) {
-        log.info("Searching for: \"{}\" (topK={})", query, topK);
+        return search(query, topK, ragProperties.getSimilarityThreshold());
+    }
+
+    public List<DocumentChunk> search(String query, int topK, double similarityThreshold) {
+        log.info("Searching for: \"{}\" (topK={}, threshold={})", query, topK, similarityThreshold);
 
         SearchRequest request = SearchRequest.builder()
                 .query(query)
                 .topK(topK)
-                .similarityThreshold(ragProperties.getSimilarityThreshold())
+                .similarityThreshold(similarityThreshold)
                 .build();
 
         List<Document> documents = vectorStore.similaritySearch(request);

@@ -81,7 +81,7 @@ public class ChatService {
             String rewrittenQuery = queryRewriter.rewrite(request.content(), history);
 
             long retrievalStart = System.currentTimeMillis();
-            List<DocumentChunk> searchResults = vectorSearch.search(rewrittenQuery);
+            List<DocumentChunk> searchResults = vectorSearch.search(rewrittenQuery, ragProperties.getTopK(), 0.0);
             long retrievalTime = System.currentTimeMillis() - retrievalStart;
             log.debug("Retrieval completed in {}ms, found {} results", retrievalTime, searchResults.size());
 
@@ -140,7 +140,7 @@ public class ChatService {
 
         try {
             String rewrittenQuery = queryRewriter.rewrite(request.content(), history);
-            List<DocumentChunk> searchResults = vectorSearch.search(rewrittenQuery);
+            List<DocumentChunk> searchResults = vectorSearch.search(rewrittenQuery, ragProperties.getTopK(), 0.0);
 
             String context;
             List<String> citations;
