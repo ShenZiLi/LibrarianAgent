@@ -17,6 +17,7 @@ import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -84,15 +85,17 @@ public class ChatService {
             long retrievalTime = System.currentTimeMillis() - retrievalStart;
             log.debug("Retrieval completed in {}ms, found {} results", retrievalTime, searchResults.size());
 
-            if (searchResults.isEmpty()) {
-                Message assistantMessage = new Message(Message.ROLE_ASSISTANT,
-                        "抱歉，我在知识库中没有找到与您的问题相关的信息。请尝试换一种方式提问，或上传相关文档到知识库中。");
-                session.addMessage(assistantMessage);
-                return toMessageResponse(assistantMessage);
-            }
+            String context;
+            List<String> citations;
 
-            String context = contextBuilder.build(searchResults);
-            List<String> citations = contextBuilder.buildCitations(searchResults);
+            if (searchResults.isEmpty()) {
+                log.info("No relevant documents found in vector store, generating answer without context");
+                context = "[未检索到相关知识库文档，请基于你的通用知识回答用户问题，并说明回答不来自知识库]";
+                citations = Collections.emptyList();
+            } else {
+                context = contextBuilder.build(searchResults);
+                citations = contextBuilder.buildCitations(searchResults);
+            }
 
             long generationStart = System.currentTimeMillis();
             String answer = llmGenerator.generate(context, rewrittenQuery);
@@ -139,16 +142,17 @@ public class ChatService {
             String rewrittenQuery = queryRewriter.rewrite(request.content(), history);
             List<DocumentChunk> searchResults = vectorSearch.search(rewrittenQuery);
 
-            if (searchResults.isEmpty()) {
-                sendSseMessage(emitter, "抱歉，我在知识库中没有找到与您的问题相关的信息。");
-                sendSseEvent(emitter, "citations", "[]");
-                sendSseEvent(emitter, "done", "done");
-                emitter.complete();
-                return emitter;
-            }
+            String context;
+            List<String> citations;
 
-            String context = contextBuilder.build(searchResults);
-            List<String> citations = contextBuilder.buildCitations(searchResults);
+            if (searchResults.isEmpty()) {
+                log.info("No relevant documents found in vector store, streaming answer without context");
+                context = "[未检索到相关知识库文档，请基于你的通用知识回答用户问题，并说明回答不来自知识库]";
+                citations = Collections.emptyList();
+            } else {
+                context = contextBuilder.build(searchResults);
+                citations = contextBuilder.buildCitations(searchResults);
+            }
 
             Flux<String> contentFlux = llmGenerator.generateStream(context, rewrittenQuery);
             StringBuilder fullAnswer = new StringBuilder();
