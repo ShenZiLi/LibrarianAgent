@@ -1,13 +1,21 @@
 package com.librarian.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.librarian.config.RagProperties;
+import com.librarian.mapper.DocumentRecordMapper;
+import com.librarian.mapper.VectorDocumentChunkMapper;
 import com.librarian.model.dto.DocumentDto.DocumentResponse;
 import com.librarian.model.entity.DocumentChunk;
+import com.librarian.model.entity.DocumentRecord;
+import com.librarian.model.entity.VectorDocumentChunk;
 import com.librarian.service.rag.DocumentParser;
 import com.librarian.service.rag.TextChunker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,45 +24,94 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
 public class IngestionService {
 
-    private final Map<String, DocumentResponse> documents = new ConcurrentHashMap<>();
-
+    private final DocumentRecordMapper documentRecordMapper;
+    private final VectorDocumentChunkMapper vectorDocumentChunkMapper;
     private final DocumentParser documentParser;
     private final TextChunker textChunker;
     private final VectorStore vectorStore;
+    private final RagProperties ragProperties;
 
-    public IngestionService(DocumentParser documentParser,
+    public IngestionService(DocumentRecordMapper documentRecordMapper,
+                            VectorDocumentChunkMapper vectorDocumentChunkMapper,
+                            DocumentParser documentParser,
                             TextChunker textChunker,
-                            VectorStore vectorStore) {
+                            VectorStore vectorStore,
+                            RagProperties ragProperties) {
+        this.documentRecordMapper = documentRecordMapper;
+        this.vectorDocumentChunkMapper = vectorDocumentChunkMapper;
         this.documentParser = documentParser;
         this.textChunker = textChunker;
         this.vectorStore = vectorStore;
+        this.ragProperties = ragProperties;
     }
 
     @Async("documentIngestionExecutor")
     public void ingestDocument(MultipartFile file) {
         String documentId = UUID.randomUUID().toString();
-        log.info("Starting document ingestion: {} (id={})",
-                file.getOriginalFilename(), documentId);
+        log.info("Starting document ingestion: {} (id={})", file.getOriginalFilename(), documentId);
 
-        DocumentResponse doc = new DocumentResponse(
-                documentId,
-                file.getOriginalFilename(),
-                file.getContentType(),
-                file.getSize(),
-                "processing",
-                0,
-                Instant.now(),
-                null
+        DocumentRecord record = new DocumentRecord();
+        record.setDocumentId(documentId);
+        record.setFileName(file.getOriginalFilename());
+        record.setFileType(file.getContentType());
+        record.setFileSize(file.getSize());
+        record.setStatus("processing");
+        record.setChunkCount(0);
+        record.setCreatedAt(Instant.now());
+        record.setUpdatedAt(Instant.now());
+        documentRecordMapper.insert(record);
+
+        doIngest(record, file);
+    }
+
+    public void retryDocument(String documentId) {
+        DocumentRecord record = documentRecordMapper.selectOne(
+                new LambdaQueryWrapper<DocumentRecord>()
+                        .eq(DocumentRecord::getDocumentId, documentId)
         );
-        documents.put(documentId, doc);
+        if (record == null) {
+            throw new RuntimeException("Document not found: " + documentId);
+        }
+        if (!"failed".equals(record.getStatus())) {
+            throw new RuntimeException("Only failed documents can be retried, current status: " + record.getStatus());
+        }
 
+        List<VectorDocumentChunk> existingChunks = vectorDocumentChunkMapper.selectList(
+                new LambdaQueryWrapper<VectorDocumentChunk>()
+                        .eq(VectorDocumentChunk::getDocumentId, documentId)
+        );
+        if (!existingChunks.isEmpty()) {
+            try {
+                vectorStore.delete(existingChunks.stream().map(VectorDocumentChunk::getVectorId).toList());
+            } catch (Exception e) {
+                log.warn("Failed to clean up existing vectors for retry {}: {}", documentId, e.getMessage());
+            }
+            vectorDocumentChunkMapper.delete(
+                    new LambdaQueryWrapper<VectorDocumentChunk>()
+                            .eq(VectorDocumentChunk::getDocumentId, documentId)
+            );
+        }
+
+        record.setStatus("processing");
+        record.setErrorMessage(null);
+        record.setUpdatedAt(Instant.now());
+        documentRecordMapper.updateById(record);
+
+        doIngest(record, null);
+    }
+
+    private void doIngest(DocumentRecord record, MultipartFile file) {
+        String documentId = record.getDocumentId();
         try {
+            if (file == null) {
+                throw new RuntimeException("File data not available for retry. Please re-upload the document.");
+            }
+
             List<DocumentChunk> parsedChunks = documentParser.parse(file);
             if (parsedChunks.isEmpty()) {
                 throw new RuntimeException("No content extracted from document");
@@ -63,53 +120,134 @@ public class IngestionService {
             List<DocumentChunk> chunkedDocuments = textChunker.chunkAll(parsedChunks);
 
             List<Document> aiDocuments = new ArrayList<>();
-            for (DocumentChunk chunk : chunkedDocuments) {
+            for (int i = 0; i < chunkedDocuments.size(); i++) {
+                DocumentChunk chunk = chunkedDocuments.get(i);
                 Map<String, Object> metadata = Map.of(
                         "fileName", chunk.getMetadataAsString("fileName"),
                         "fileType", chunk.getMetadataAsString("fileType"),
                         "documentId", documentId
                 );
-                aiDocuments.add(new Document(chunk.getContent(), metadata));
+                Document aiDoc = new Document(chunk.getContent(), metadata);
+                aiDocuments.add(aiDoc);
             }
 
             vectorStore.add(aiDocuments);
 
-            DocumentResponse completed = new DocumentResponse(
-                    documentId,
-                    doc.fileName(),
-                    doc.fileType(),
-                    doc.fileSize(),
-                    "completed",
-                    aiDocuments.size(),
-                    doc.createdAt(),
-                    Instant.now()
-            );
-            documents.put(documentId, completed);
+            for (int i = 0; i < aiDocuments.size(); i++) {
+                VectorDocumentChunk chunkRecord = new VectorDocumentChunk();
+                chunkRecord.setDocumentId(documentId);
+                chunkRecord.setChunkIndex(i);
+                chunkRecord.setChunkText(aiDocuments.get(i).getText());
+                chunkRecord.setVectorId(aiDocuments.get(i).getId());
+                chunkRecord.setCreatedAt(Instant.now());
+                vectorDocumentChunkMapper.insert(chunkRecord);
+            }
+
+            record.setStatus("completed");
+            record.setChunkCount(aiDocuments.size());
+            record.setUpdatedAt(Instant.now());
+            documentRecordMapper.updateById(record);
+
             log.info("Document ingestion completed: {} ({} chunks)", documentId, aiDocuments.size());
         } catch (Exception e) {
             log.error("Document ingestion failed: {}", documentId, e);
-            DocumentResponse failed = new DocumentResponse(
-                    documentId, doc.fileName(), doc.fileType(),
-                    doc.fileSize(), "failed", 0, doc.createdAt(), null
-            );
-            documents.put(documentId, failed);
+            record.setStatus("failed");
+            record.setErrorMessage(e.getMessage());
+            record.setUpdatedAt(Instant.now());
+            documentRecordMapper.updateById(record);
         }
     }
 
-    public List<DocumentResponse> listDocuments() {
-        return new ArrayList<>(documents.values());
+    public Page<DocumentResponse> listDocuments(int page, int size, String status) {
+        LambdaQueryWrapper<DocumentRecord> wrapper = new LambdaQueryWrapper<>();
+        if (status != null && !status.isBlank()) {
+            wrapper.eq(DocumentRecord::getStatus, status);
+        }
+        wrapper.orderByDesc(DocumentRecord::getCreatedAt);
+
+        Page<DocumentRecord> recordPage = documentRecordMapper.selectPage(
+                new Page<>(page, size), wrapper
+        );
+
+        Page<DocumentResponse> responsePage = new Page<>(
+                recordPage.getCurrent(), recordPage.getSize(), recordPage.getTotal()
+        );
+        responsePage.setRecords(recordPage.getRecords().stream().map(this::toResponse).toList());
+        return responsePage;
     }
 
     public DocumentResponse getDocument(String documentId) {
-        DocumentResponse doc = documents.get(documentId);
-        if (doc == null) {
+        DocumentRecord record = documentRecordMapper.selectOne(
+                new LambdaQueryWrapper<DocumentRecord>()
+                        .eq(DocumentRecord::getDocumentId, documentId)
+        );
+        if (record == null) {
             throw new RuntimeException("Document not found: " + documentId);
         }
-        return doc;
+        return toResponse(record);
     }
 
     public void deleteDocument(String documentId) {
-        documents.remove(documentId);
+        DocumentRecord record = documentRecordMapper.selectOne(
+                new LambdaQueryWrapper<DocumentRecord>()
+                        .eq(DocumentRecord::getDocumentId, documentId)
+        );
+        if (record == null) {
+            throw new RuntimeException("Document not found: " + documentId);
+        }
+
+        List<VectorDocumentChunk> chunks = vectorDocumentChunkMapper.selectList(
+                new LambdaQueryWrapper<VectorDocumentChunk>()
+                        .eq(VectorDocumentChunk::getDocumentId, documentId)
+        );
+
+        if (!chunks.isEmpty()) {
+            try {
+                vectorStore.delete(chunks.stream().map(VectorDocumentChunk::getVectorId).toList());
+                log.info("Deleted {} vectors for document: {}", chunks.size(), documentId);
+            } catch (Exception e) {
+                log.warn("Failed to delete vectors for document {}: {}", documentId, e.getMessage());
+            }
+            vectorDocumentChunkMapper.delete(
+                    new LambdaQueryWrapper<VectorDocumentChunk>()
+                            .eq(VectorDocumentChunk::getDocumentId, documentId)
+            );
+        }
+
+        documentRecordMapper.deleteById(record.getId());
         log.info("Document deleted: {}", documentId);
+    }
+
+    @Scheduled(fixedDelayString = "${rag.processing-check-interval:300000}")
+    public void markTimeoutDocuments() {
+        Instant timeoutThreshold = Instant.now().minusSeconds(ragProperties.getProcessingTimeoutMinutes() * 60L);
+
+        List<DocumentRecord> timedOutRecords = documentRecordMapper.selectList(
+                new LambdaQueryWrapper<DocumentRecord>()
+                        .eq(DocumentRecord::getStatus, "processing")
+                        .lt(DocumentRecord::getUpdatedAt, timeoutThreshold)
+        );
+
+        for (DocumentRecord record : timedOutRecords) {
+            log.warn("Marking timed out document as failed: {}", record.getDocumentId());
+            record.setStatus("failed");
+            record.setErrorMessage("Processing timeout after " + ragProperties.getProcessingTimeoutMinutes() + " minutes");
+            record.setUpdatedAt(Instant.now());
+            documentRecordMapper.updateById(record);
+        }
+    }
+
+    private DocumentResponse toResponse(DocumentRecord record) {
+        return new DocumentResponse(
+                record.getDocumentId(),
+                record.getFileName(),
+                record.getFileType(),
+                record.getFileSize(),
+                record.getStatus(),
+                record.getChunkCount(),
+                record.getErrorMessage(),
+                record.getCreatedAt(),
+                record.getUpdatedAt()
+        );
     }
 }
