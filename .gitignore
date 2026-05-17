@@ -39,3 +39,4 @@ Thumbs.db
 *.tmp
 *.temp
 *.git-credentials
+target
