@@ -1,6 +1,6 @@
 package com.librarian.service;
 
-import com.librarian.config.AiConfig;
+import com.librarian.config.RagProperties;
 import com.librarian.model.dto.ChatDto.*;
 import com.librarian.model.entity.ConversationSession;
 import com.librarian.model.entity.Message;
@@ -23,18 +23,18 @@ import java.util.List;
 public class ChatService {
 
     private final java.util.Map<String, ConversationSession> sessions = new java.util.concurrent.ConcurrentHashMap<>();
-    private final AiConfig aiConfig;
+    private final RagProperties ragProperties;
     private final QueryRewriter queryRewriter;
     private final VectorSearch vectorSearch;
     private final ContextBuilder contextBuilder;
     private final LlmGenerator llmGenerator;
 
-    public ChatService(AiConfig aiConfig,
+    public ChatService(RagProperties ragProperties,
                        QueryRewriter queryRewriter,
                        VectorSearch vectorSearch,
                        ContextBuilder contextBuilder,
                        LlmGenerator llmGenerator) {
-        this.aiConfig = aiConfig;
+        this.ragProperties = ragProperties;
         this.queryRewriter = queryRewriter;
         this.vectorSearch = vectorSearch;
         this.contextBuilder = contextBuilder;
@@ -80,7 +80,7 @@ public class ChatService {
         Message userMessage = new Message(Message.ROLE_USER, request.content());
         session.addMessage(userMessage);
 
-        List<Message> history = session.getRecentHistory(aiConfig.getMaxHistoryRounds());
+        List<Message> history = session.getRecentHistory(ragProperties.getMaxHistoryRounds());
 
         try {
             String rewrittenQuery = queryRewriter.rewrite(request.content(), history);
@@ -139,7 +139,7 @@ public class ChatService {
         Message userMessage = new Message(Message.ROLE_USER, request.content());
         session.addMessage(userMessage);
 
-        List<Message> history = session.getRecentHistory(aiConfig.getMaxHistoryRounds());
+        List<Message> history = session.getRecentHistory(ragProperties.getMaxHistoryRounds());
 
         try {
             String rewrittenQuery = queryRewriter.rewrite(request.content(), history);
